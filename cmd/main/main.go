@@ -74,7 +74,5 @@ World!` // backticks for multiline strings
 		When variables are initialized without a value default values are set
 		Variable types with 0 as default value:
 		int, uint, float, complex, byte, rune
-
-		When ini
 	*/
 }
