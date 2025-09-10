@@ -71,8 +71,13 @@ World!` // backticks for multiline strings
 	var myPointerX *string
 	fmt.Println(myPointerX) // prints <nil> because the pointer is not initialized
 	/*
-		When variables are initialized without a value default values are set
+		When variables are initialized without a value default values are assigned
+
 		Variable types with 0 as default value:
 		int, uint, float, complex, byte, rune
+
+		Default value for string is ""
+		Default value for bool is false
+		Default value for pointer is nil
 	*/
 }
