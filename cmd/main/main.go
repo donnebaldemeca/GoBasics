@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"unicode/utf8"
 )
@@ -80,4 +81,51 @@ World!` // backticks for multiline strings
 		Default value for bool is false
 		Default value for pointer is nil
 	*/
+
+	var myInferedInt = 42           // type inferred as int without explicit type declaration
+	myInferedString := "Hello, Go!" // shorthand for declaring and initializing a variable, type inferred
+	fmt.Println(myInferedInt, myInferedString)
+
+	var1, var2 := "Hello", 42 // multiple variable declaration and initialization
+	fmt.Println(var1, var2)
+
+	/*
+		Can use short-hand declaration when type is obvious, otherwise use explicit declaration
+		Should only use short-hand declaration inside functions, not for package-level variables
+	*/
+
+	const myConst string = "constant value" // constant variable, cannot be changed after declaration
+	fmt.Println(myConst)
+
+	/*
+		Constants can be character, string, boolean, or numeric values
+		Constants cannot be declared using the := syntax
+		Constants must be initialized with a value
+		Constants are often used for configuration values that should not change
+	*/
+	printMyName("Donne")
+	var result, remainder, err = intDivision(10, 2)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	} else if remainder == 0 {
+		fmt.Printf("10 divided by 3 is %v with no remainder\n", result)
+	} else {
+		fmt.Printf("10 divided by 3 is %v with a remainder of %d\n", result, remainder)
+		// %v is a placeholder 'verb' for any value, %d is a placeholder 'verb' for any decimal value base 10
+	}
+}
+
+// Functions
+// keyword functionName(parameterName parameterType) returnType { ... }
+func printMyName(name string) {
+	fmt.Println("My name is", name)
+}
+
+func intDivision(numerator int, denominator int) (int, int, error) {
+	if denominator == 0 {
+		return 0, 0, errors.New("denominator cannot be zero")
+	}
+	result := numerator / denominator
+	remainder := numerator % denominator
+	return result, remainder, nil
 }
