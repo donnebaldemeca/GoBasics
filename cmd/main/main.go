@@ -4,6 +4,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -113,10 +115,134 @@ World!` // backticks for multiline strings
 		fmt.Printf("10 divided by 3 is %v with a remainder of %d\n", result, remainder)
 		// %v is a placeholder 'verb' for any value, %d is a placeholder 'verb' for any decimal value base 10
 	}
+
+	/*
+
+		Data Structures
+
+	*/
+
+	// Arrays - fixed size, same type, indexable, contiguous memory
+	var intArr [3]int32 = [3]int32{1, 2, 3}
+	// var intArr = [...]int32{1, 2, 3} // type inferred, size inferred
+	// intArr := [...]int32{1, 2, 3} // shorthand declaration, type inferred, size inferred
+
+	fmt.Println(intArr[0])   // access first element
+	fmt.Println(intArr[1:3]) // slice from index 1 to 2 (1 is inclusive, 3 is exclusive)
+
+	// Stored in continguous memory locations 32 bits (4 bytes) each,  4 bytes apart
+	fmt.Println(&intArr[0]) // access first element memory location
+	fmt.Println(&intArr[1]) // access second element memory location
+	fmt.Println(&intArr[2]) // access third element memory location
+
+	// Slices - dynamic size, same type, indexable, contiguous memory, wrapper around arrays
+	var intSlice []int32 = []int32{1, 2, 3} // type inferred, size dynamic
+	// intSlice := []int32{1, 2, 3} // shorthand declaration, type inferred, size dynamic
+	fmt.Println(intSlice)
+	fmt.Printf("Length: %d, Capacity: %d\n", len(intSlice), cap(intSlice)) // length and capacity of slice
+
+	intSlice = append(intSlice, 4) // append to slice, increases size dynamically
+	// creates a new underlying array if the existing array is not large enough to accommodate the new element
+	fmt.Println(intSlice)
+	fmt.Printf("Length: %d, Capacity: %d\n", len(intSlice), cap(intSlice)) // length and capacity of slice after append
+
+	var newIntSlice []int32 = []int32{5, 10}
+	newIntSlice = append(newIntSlice, intSlice...) // append intSlice to newIntSlice, ... is the spread operator
+	fmt.Println(newIntSlice)
+	fmt.Printf("Length: %d, Capacity: %d\n", len(newIntSlice), cap(newIntSlice))
+
+	var newerIntSlice []int32 = make([]int32, 2, 5) // using the make functrion, creates a slice with length 2 and capacity 5
+	// if capacity is not specified, it defaults to the length
+	fmt.Println(newerIntSlice)
+	fmt.Printf("Length: %d, Capacity: %d\n", len(newerIntSlice), cap(newerIntSlice))
+
+	// Maps - key-value pairs, dynamic size, unordered, reference type
+	var myMap map[string]uint8 = make(map[string]uint8) // type inferred, size dynamic
+	// myMap := map[string]uint8{"Donne":32, "Alice":28, "Bob": 25} // shorthand declaration, initialized with values
+	myMap["Donne"] = 32
+	myMap["Alice"] = 28
+	myMap["Bob"] = 25
+	fmt.Println(myMap)
+
+	// Maps also return a boolean indicating if the key exists
+	mapKey := "Jake"
+	age, exists := myMap[mapKey]
+	if exists {
+		fmt.Printf("%s is %d years old\n", mapKey, age)
+	} else {
+		fmt.Printf("%s not found in map\n", mapKey)
+	}
+
+	delete(myMap, "Bob") // delete key-value pair from map
+	fmt.Println(myMap)
+	fmt.Printf("Length: %d\n", len(myMap)) // length of map
+
+	// Loops
+	for name := range myMap {
+		fmt.Printf("Name: %s, Age: %d\n", name, myMap[name])
+	}
+	// In maps the order of iteration is not guaranteed to be the same each time
+	// Go does not have a while loop, but can use for loop to achieve the same functionality
+	for i := 0; i < 5; i++ {
+		fmt.Println("Iteration:", i)
+	}
+	// Same as while i < 5
+
+	/*
+		Performance Testing
+	*/
+	allocationSize := 100000
+	var perfSlice1 = []int{}
+	var perfSlice2 = make([]int, 0, allocationSize)
+
+	fmt.Printf("Time taken for slice without pre-allocated capacity: %v\n", timeLoop(perfSlice1, allocationSize))
+	fmt.Printf("Time taken for slice with pre-allocated capacity: %v\n", timeLoop(perfSlice2, allocationSize))
+
+	/*
+		Strings, Runes, and Bytes
+		Strings are immutable, cannot change individual characters
+		Runes are used to represent Unicode characters
+		Bytes are used to represent raw binary data
+	*/
+
+	var thisString = "Résumé"                // string with Unicode characters
+	var indexed = thisString[0]              // index the first character, returns a byte value
+	fmt.Printf("%v, %T\n", indexed, indexed) // prints the byte value and type of the first character
+	fmt.Println(string(indexed))             // converts the byte back to a string and prints the character
+	for i, v := range thisString {           // range over the string, returns the index and byte value of each character
+		fmt.Printf("Index: %d, Value: %v\n", i, v) // using %c results in rune using %v results in byte value
+	}
+	// Index 2 is skipped because index 1 and 2 are part of the same Unicode character
+
+	var thisRune = 'a'                                       // rune must be enclosed in single quotes
+	fmt.Printf("%v, %T, %c\n", thisRune, thisRune, thisRune) // prints the rune value, type, and character
+
+	var strSlice = []string{"s", "t", "r", "i", "n", "g"} // slice of strings
+	var concatStr = ""
+	for i := range strSlice { // creates a new string every iteration because strings are immutable
+		concatStr += strSlice[i]
+	}
+	fmt.Println(concatStr)
+
+	// More efficient way to concatenate strings using strings.Builder
+	var sb strings.Builder
+	for i := range strSlice {
+		sb.WriteString(strSlice[i])
+	}
+	var catStr = sb.String() // convert the builder to a string
+	fmt.Println(catStr)
+
 }
 
-// Functions
-// keyword functionName(parameterName parameterType) returnType { ... }
+/*
+
+	Functions
+
+	Declaration phrasing:
+	keyword functionName(parameterName parameterType) returnType { ... }
+
+*/
+
 func printMyName(name string) {
 	fmt.Println("My name is", name)
 }
@@ -128,4 +254,12 @@ func intDivision(numerator int, denominator int) (int, int, error) {
 	result := numerator / denominator
 	remainder := numerator % denominator
 	return result, remainder, nil
+}
+
+func timeLoop(slice []int, n int) time.Duration {
+	start := time.Now()
+	for len(slice) < n {
+		slice = append(slice, 1)
+	}
+	return time.Since(start)
 }
