@@ -9,7 +9,63 @@ import (
 	"unicode/utf8"
 )
 
+/*
+
+	Structs and Interfaces
+	Declaration phrasing:
+	type structName struct {
+		fieldName fieldType (values default to zero values if not initialized)
+		...
+	}
+
+*/
+
+type gasEngine struct {
+	mpg       uint8
+	gallons   uint8
+	ownerInfo engineOwner // fields can be other structs, creating nested structs
+}
+
+// func (receiverName receiverType) methodName(parameterName parameterType) returnType { ... }
+func (g gasEngine) milesLeft() uint8 { // method with receiver of type gasEngine, directly associated with the struct, and can access its fields
+	return g.mpg * g.gallons
+}
+
+type engineOwner struct {
+	name string
+	ownerID
+}
+
+type ownerID struct {
+	id uint8
+}
+
+type electricEngine struct {
+	mpkwh     uint8
+	kwh       uint8
+	ownerInfo engineOwner
+}
+
+func (e electricEngine) milesLeft() uint8 { // method with receiver of type electricEngine
+	return e.mpkwh * e.kwh
+}
+
+type engine interface { // interface type, defines a set of methods that a type must implement to satisfy the interface
+	milesLeft() uint8 // any type that has a milesLeft method with this signature satisfies the engine interface
+}
+
+func canDrive(e engine, miles uint8) { // function that takes an engine interface as a parameter
+	if miles <= e.milesLeft() {
+		fmt.Println("You can drive!")
+	} else {
+		fmt.Println("You need to refuel/recharge!")
+	}
+}
+
 func main() {
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Println("Variables and Data Types")
+	fmt.Println(strings.Repeat("-", 50))
 	/*
 		Variables are statically & strongly typed
 
@@ -116,6 +172,10 @@ World!` // backticks for multiline strings
 		// %v is a placeholder 'verb' for any value, %d is a placeholder 'verb' for any decimal value base 10
 	}
 
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Println("Data Structures")
+	fmt.Println(strings.Repeat("-", 50))
+
 	/*
 
 		Data Structures
@@ -188,8 +248,12 @@ World!` // backticks for multiline strings
 	}
 	// Same as while i < 5
 
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Println("Performance Test")
+	fmt.Println(strings.Repeat("-", 50))
+
 	/*
-		Performance Testing
+		Performance Test
 	*/
 	allocationSize := 100000
 	var perfSlice1 = []int{}
@@ -197,6 +261,10 @@ World!` // backticks for multiline strings
 
 	fmt.Printf("Time taken for slice without pre-allocated capacity: %v\n", timeLoop(perfSlice1, allocationSize))
 	fmt.Printf("Time taken for slice with pre-allocated capacity: %v\n", timeLoop(perfSlice2, allocationSize))
+
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Println("Strings, Runes, and Bytes")
+	fmt.Println(strings.Repeat("-", 50))
 
 	/*
 		Strings, Runes, and Bytes
@@ -232,6 +300,78 @@ World!` // backticks for multiline strings
 	var catStr = sb.String() // convert the builder to a string
 	fmt.Println(catStr)
 
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Println("Structs, Interfaces, and Methods")
+	fmt.Println(strings.Repeat("-", 50))
+
+	// Structs, Interfaces, and Methods
+	var myEngine gasEngine = gasEngine{mpg: 25, gallons: 15} // initialize struct
+	// myEngine := gasEngine{25, 15} // shorthand declaration, order matters for field values when initializing without field names
+	// if no value is provided for a field, it defaults to the zero value of the field type
+	// myEngine.mpg = 25 // can assign values to struct fields individually
+	// myEngine.gallons = 15
+	fmt.Printf("My engine gets %d miles per gallon and has a %d gallon tank\n", myEngine.mpg, myEngine.gallons)
+
+	myEngine.ownerInfo = engineOwner{name: "Donne", ownerID: ownerID{id: 1}} // initialize nested struct field
+	fmt.Printf("Engine owner is %s, ID %d\n", myEngine.ownerInfo.name, myEngine.ownerInfo.id)
+
+	var myInfo engineOwner = engineOwner{name: "Alice", ownerID: ownerID{id: 2}} // initialize nested struct with nested struct field
+	fmt.Printf("Owner is %s, ID %d\n", myInfo.name, myInfo.id)                   // can also access nested struct fields directly myInfo.id instead of myInfo.ownerID.id
+
+	// Anonymous struct
+	var hydroEngine = struct { // no name for the struct type, cannot be reused
+		waterCapacity  uint8
+		estimatedRange uint16
+		ownerInfo      engineOwner
+	}{waterCapacity: 100, estimatedRange: 300, ownerInfo: engineOwner{name: "Bob", ownerID: ownerID{id: 3}}}
+	fmt.Printf("Hydro engine has %d gallons of water and an estimated range of %d miles. Owner is %s, ID %d\n", hydroEngine.waterCapacity, hydroEngine.estimatedRange, hydroEngine.ownerInfo.name, hydroEngine.ownerInfo.id)
+
+	myEngine.gallons = 3 // milesLeft() returns uint8, if gallon value was 15 it would overflow and return incorrect value
+
+	fmt.Printf("My gas engine can go %d miles before refueling\n", myEngine.milesLeft()) // call method on struct
+
+	var myElectricEngine electricEngine = electricEngine{mpkwh: 3, kwh: 10, ownerInfo: engineOwner{name: "Eve", ownerID: ownerID{id: 4}}}
+	canDrive(myElectricEngine, 50) // pass struct that implements the engine interface
+
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Println("Pointers and Memory Management")
+	fmt.Println(strings.Repeat("-", 50))
+
+	/*
+
+		Pointers and Memory Management
+
+	*/
+
+	var pointer *int32 = new(int32) // new allocates memory for an int32 and returns a pointer to it
+	// pointer will default to nil if not initialized
+	// pointer points to empty memory location with size of int32 (4 bytes)
+	var integer32 int32 = 3
+	fmt.Printf("The value pointer points to is: %v\n", *pointer)       // dereference pointer to get value, defaults to 0
+	fmt.Printf("The memory address of pointer is: %v\n", pointer)      // prints memory address
+	fmt.Printf("The value of integer32 is: %v\n", integer32)           // defaults to 0
+	pointer = &integer32                                               // assign the address of integer32 to pointer
+	fmt.Printf("The value pointer points to is: %v\n", *pointer)       // dereference pointer to get value
+	fmt.Printf("The memory address of pointer is: %v\n", pointer)      // prints memory address
+	fmt.Printf("The memory address of integer32 is: %v\n", &integer32) // prints memory address of integer32
+	*pointer = 10                                                      // change the value at the memory address pointer points to
+	fmt.Printf("The value pointer points to is: %v\n", *pointer)       // dereference pointer to get value
+	fmt.Printf("The value of integer32 is: %v\n", integer32)           // integer32 value has changed to 10
+
+	// Pointers and slices
+	// Slices use pointers internally to reference the underlying array
+	var exampleSlice = []int{1, 2, 3}
+	var sliceCopy = exampleSlice // creates a copy of the slice header, but both slices point to the same underlying array
+	sliceCopy[0] = 10            // changing the value of sliceCopy also changes exampleSlice
+	fmt.Println("exampleSlice:", exampleSlice)
+
+	// Pointers and functions
+	var floatArray = [5]float64{1, 2, 3, 4, 5}
+	fmt.Println("Original array:", floatArray)
+	squaredArray := squareArray(&floatArray) // passing array by reference using pointer, instead of by value, thus saving memory
+	fmt.Println("Squared array returned from function:", squaredArray)
+	fmt.Println("Original array after function call:", floatArray) // original array is unchanged
+
 }
 
 /*
@@ -262,4 +402,12 @@ func timeLoop(slice []int, n int) time.Duration {
 		slice = append(slice, 1)
 	}
 	return time.Since(start)
+}
+
+// Pointers and functions
+func squareArray(fl64Value *[5]float64) [5]float64 {
+	for i := range fl64Value {
+		fl64Value[i] = fl64Value[i] * fl64Value[i]
+	}
+	return *fl64Value
 }
