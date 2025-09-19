@@ -4,10 +4,27 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 )
+
+// Go Routine variables
+var waitGroup = sync.WaitGroup{} // create a waitgroup to wait for all go routines to finish, essentially a counter
+// Add waitgroup.Add(1) before starting a go routine
+// Add waitgroup.Wait() in main function to wait for all go routines to finish
+// Add waitgroup.Done() at the end of the go routine (within function) to decrement the counter
+
+// Simulated database data
+var dbData = []string{"id1", "id2", "id3", "id4", "id5"}
+
+// Mutex / Locks
+var mutex = sync.Mutex{} // create a mutex to lock access to shared resources in go routines
+var dbResults = []string{}
+
+// Go Routine variables end
 
 /*
 
@@ -372,6 +389,29 @@ World!` // backticks for multiline strings
 	fmt.Println("Squared array returned from function:", squaredArray)
 	fmt.Println("Original array after function call:", floatArray) // original array is unchanged
 
+	// Go routines launch multiple threads of execution within a single program
+	t0 := time.Now()
+	for i := 0; i < len(dbData); i++ {
+		waitGroup.Add(1) // increment the waitgroup counter before starting a go routine
+
+		// dbCall(i) // sequential calls, takes longer
+		go dbCall(i) // concurrent calls, takes less time, use 'go' keyword infront of function
+		// go routines run in the background, main function may exit before they complete, so a waitgroup or sleep may be needed to wait for them to finish
+		// dbCall function calls waitGroup.Done() to decrement the counter when it completes
+	}
+	waitGroup.Wait() // wait for all go routines to finish
+	fmt.Printf("Sequential DB calls took: %v\n", time.Since(t0))
+
+	// Mutex / Locks
+	t1 := time.Now()
+	for i := 0; i < len(dbData); i++ {
+		waitGroup.Add(1)
+		go dbCallMutexLock(i)
+		// dbCallMutexLock function uses mutex to lock access to shared resource (dbResults slice) when writing to it
+	}
+	waitGroup.Wait()
+	fmt.Printf("Sequential DB calls took: %v\n", time.Since(t1))
+
 }
 
 /*
@@ -410,4 +450,28 @@ func squareArray(fl64Value *[5]float64) [5]float64 {
 		fl64Value[i] = fl64Value[i] * fl64Value[i]
 	}
 	return *fl64Value
+}
+
+// Go routine function example
+func dbCall(i int) {
+	var delay float32 = rand.Float32() * 2000
+	time.Sleep(time.Duration(delay) * time.Millisecond)
+	fmt.Printf("DB call %d took %f seconds\n", i, delay/1000)
+	waitGroup.Done() // decrement the waitgroup counter when the go routine completes
+}
+
+func dbCallMutexLock(i int) {
+	var delay float32 = 2000
+	time.Sleep(time.Duration(delay) * time.Millisecond)
+	fmt.Printf("DB call %d took %f seconds\n", i, delay/1000)
+
+	mutex.Lock() // lock access to shared resource
+	// Necessary to prevent threads from writing to the shared resource at the same time
+
+	dbResults = append(dbResults, dbData[i]) // simulate storing result in a shared resource
+	mutex.Unlock()                           // lock access to shared resource
+	// Can also use Read/Write mutex for more granular control over read and write access
+	// Can use Rlock() and RUnlock() for read access
+
+	waitGroup.Done() // decrement the waitgroup counter when the go routine completes
 }
