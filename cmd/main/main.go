@@ -389,7 +389,14 @@ World!` // backticks for multiline strings
 	fmt.Println("Squared array returned from function:", squaredArray)
 	fmt.Println("Original array after function call:", floatArray) // original array is unchanged
 
-	// Go routines launch multiple threads of execution within a single program
+	/*
+
+		Go routines
+
+		Launch multiple threads of execution within a single program
+
+	*/
+
 	t0 := time.Now()
 	for i := 0; i < len(dbData); i++ {
 		waitGroup.Add(1) // increment the waitgroup counter before starting a go routine
@@ -412,6 +419,48 @@ World!` // backticks for multiline strings
 	waitGroup.Wait()
 	fmt.Printf("Sequential DB calls took: %v\n", time.Since(t1))
 
+	/*
+
+		Channels
+
+		Hold data sent from one go routine to another
+		Thread-safe communication between go routines
+		Listens for data to be sent to it
+		Buffered or unbuffered
+		Uses keywords: make, chan, <- (channel operator)
+
+	*/
+
+	var channel = make(chan int) // can only hold a single int value
+	// must be used with go routines to send and receive data concurrently
+
+	/*
+
+		this will not work as there is no go routine to receive the value being sent to the channel, thus it will block forever
+
+		channel <- 42                //send value to channel, blocks until a go routine is ready to receive the value
+		// channel is uses underlying array of size 1, if another value is sent to the channel before the first is received, it will block
+
+		var chanVar = <-channel // receive value from channel, blocks until a value is sent to the channel
+		fmt.Println("Value received from channel:", chanVar)
+	*/
+
+	go channelProcess(channel) // start a go routine to send a value to the channel
+	var chanVar = <-channel    // receive value from channel, blocks until a value is sent to the channel
+	fmt.Println("Value received from channel:", chanVar)
+
+	go channelProcessLoop(channel) // start a go routine to send multiple values to the channel
+	for v := range channel {       // receive values from channel until it is closed, blocks until a value is sent to the channel
+		fmt.Println("Value received from channel:", v)
+	} // prints as values are received from the channel, fast
+
+	// Buffer channels
+	var bufferChannel = make(chan int, 5)
+	go channelProcessLoop(bufferChannel) // channelProcessLoop function process ends before the receiving loop ends, because the channel has a buffer of 5 and can hold all values sent to it before blocking
+	for v := range bufferChannel {
+		fmt.Println("Value received from buffered channel:", v)
+		time.Sleep(time.Second * 1) // simulate slow processing of received values
+	}
 }
 
 /*
@@ -474,4 +523,21 @@ func dbCallMutexLock(i int) {
 	// Can use Rlock() and RUnlock() for read access
 
 	waitGroup.Done() // decrement the waitgroup counter when the go routine completes
+}
+
+// Go routine for channels example
+
+func channelProcess(ch chan int) {
+	ch <- 42 // send value to channel
+}
+
+func channelProcessLoop(ch chan int) {
+	defer close(ch) // closes the channel when the function exits
+	// keyword defer delays the execution of a function until the surrounding function returns, last statement to be executed
+	for i := 0; i < 5; i++ {
+		ch <- i // send value to channel
+	}
+	fmt.Println("Channel sender done sending values")
+	// close(ch) // can also close the channel here, but defer is more reliable
+	// closing channel necessary to prevent deadlock when ranging over the channel in the receiving go routine
 }
