@@ -461,6 +461,24 @@ World!` // backticks for multiline strings
 		fmt.Println("Value received from buffered channel:", v)
 		time.Sleep(time.Second * 1) // simulate slow processing of received values
 	}
+
+	/*
+
+		Generics
+
+		Allows functions and data structures to operate on different data types while providing compile-time type safety
+		Introduced in Go 1.18
+		Declaration phrasing:
+		keyword functionName[typeParameter any](parameterName typeParameter) returnType { ... }
+
+	*/
+
+	var intSliceGen = []int{1, 2, 3}
+	fmt.Println(sumSlice[int](intSliceGen)) // specify type parameter when calling generic function, but can be inferred by the compiler
+	var float32SliceGen = []float32{1.1, 2.2, 3.3}
+	fmt.Println(sumSlice(float32SliceGen)) // type parameter inferred by the compiler
+	var float64SliceGen = []float64{1.11, 2.22, 3.33}
+	fmt.Println(sumSlice(float64SliceGen)) // type parameter inferred by the compiler
 }
 
 /*
@@ -540,4 +558,15 @@ func channelProcessLoop(ch chan int) {
 	fmt.Println("Channel sender done sending values")
 	// close(ch) // can also close the channel here, but defer is more reliable
 	// closing channel necessary to prevent deadlock when ranging over the channel in the receiving go routine
+}
+
+// Generics example
+
+// func nameOfFunction[T typeConstraint](parameterName T) returnType T{ ... }
+func sumSlice[T int | float32 | float64](slice []T) T {
+	var sum T
+	for _, v := range slice {
+		sum += v
+	}
+	return sum
 }
